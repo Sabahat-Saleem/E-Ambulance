@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Emergency Requests</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Requested At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for req in requests %}
+        <tr>
+            <td>{{ req.requestid }}</td>
+            <td>{{ req.user.firstname }} {{ req.user.lastname }}</td>
+            <td>{{ req.description }}</td>
+            <td>{{ req.status }}</td>
+            <td>{{ req.request_time }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No emergency requests yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Ambulance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg" style="background-color: #cc924fff;">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/"> E-Ambulance</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <!-- Static Pages -->
+          <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'gallery' %}">Image Gallery</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'ambulance_types' %}">Ambulance Types</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'feedback' %}">Feedback</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'costs' %}">Ambulance Costs</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'drivers_list' %}">Driver’s List</a></li>
+
+          <!-- User Accounts -->
+          <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <div class="container mt-4">
+    {% block content %}<div class="container mt-5">
+  <h2>Welcome, {{ user.firstname }} {{ user.lastname }} 👋</h2>
+  <p>Email: {{ user.email }}</p>
+  <p>Phone: {{ user.phonenumber }}</p>
+
+  <hr>
+  <h4>Quick Links</h4>
+  <ul>
+    <li><a href="{% url 'my_requests' %}">My Emergency Requests</a></li>
+    <li><a href="{% url 'ambulance_list' %}">Available Ambulances</a></li>
+    <li><a href="{% url 'logout' %}">Logout</a></li>
+  </ul>
+</div>{% endblock %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

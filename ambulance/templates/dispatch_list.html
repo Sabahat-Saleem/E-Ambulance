@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Dispatch Control</h2>
+    <a href="{% url 'dispatch_create' %}" class="btn btn-primary mb-3">➕ Assign New Dispatch</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Request</th>
+                <th>User</th>
+                <th>Ambulance</th>
+                <th>Driver</th>
+                <th>Status</th>
+                <th>Assigned Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in dispatches %}
+            <tr>
+                <td>{{ d.dispatchid }}</td>
+                <td>{{ d.request.requestid }}</td>
+                <td>{{ d.request.user.firstname }} {{ d.request.user.lastname }}</td>
+                <td>{{ d.ambulance.vehicle_number }}</td>
+                <td>{{ d.driver.firstname }} {{ d.driver.lastname }}</td>
+                <td>{{ d.request.status }}</td>
+                <td>{{ d.assigned_time }}</td>
+                <td>
+                    {% if d.request.status == "assigned" %}
+                        <a href="{% url 'dispatch_complete' d.pk %}" class="btn btn-success btn-sm">✅ Complete</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center">No dispatches yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
