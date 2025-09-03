@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     
     # Home page urls************************#
-    path("home/", views.home, name="home"),
+    path("home", views.home, name="home"),
     path("about/", views.about, name="about"),
     path("gallery/", views.gallery, name="gallery"),
     path("contact/", views.contact, name="contact"),
@@ -15,9 +15,9 @@ urlpatterns = [
     path("drivers-list/", views.drivers_list, name="drivers_list"),
 
     # User accounts
-    path("", views.register, name="register"),
+    path("register/", views.register, name="register"),
     path("login/", views.login_view, name="login"),
-    path("logout/", views.logout_view, name="logout"),
+    path("home/", views.home, name="home"),
 
     # Ambulance URLs
     path("ambulances/", views.ambulance_list, name="ambulance_list"),
@@ -37,4 +37,6 @@ urlpatterns = [
     path("dispatch/<int:pk>/complete/", views.dispatch_complete, name="dispatch_complete"),
     path("emergency/requests/", views.emergency_request_list, name="emergency_request_list"),
     path("emergency/request/new/", views.emergency_request_create, name="emergency_request_create"),
-]  
+    path("my-requests/", views.my_requests, name="my_requests"),
+    path("logout/", views.logout_view, name="logout"),
+]   

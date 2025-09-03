@@ -44,26 +44,26 @@ class EmergencyRequestForm(forms.ModelForm):
         }
 
 class RegistrationForm(forms.ModelForm):
-    confirm_password = forms.CharField(widget=forms.PasswordInput())
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = User
-        fields = ["firstname", "lastname", "email", "phonenumber", "password", "confirm_password", "date_of_birth", "address"]
+        fields = ["firstname", "lastname", "email", "phonenumber", "password", "date_of_birth", "address"]
         widgets = {
-            "password": forms.PasswordInput(),
+            "firstname": forms.TextInput(attrs={"class": "form-control"}),
+            "lastname": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "phonenumber": forms.TextInput(attrs={"class": "form-control"}),
+            "password": forms.PasswordInput(attrs={"class": "form-control"}),
+            "date_of_birth": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "address": forms.TextInput(attrs={"class": "form-control"}),
         }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        confirm_password = cleaned_data.get("confirm_password")
-
-        if password and confirm_password and password != confirm_password:
-            raise forms.ValidationError("Passwords do not match!")
-
-        return cleaned_data
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput())
+    email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'form-control', 'placeholder': ' '
+    }))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-control', 'placeholder': ' '
+    }))

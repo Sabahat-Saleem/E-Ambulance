@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Ambulance, Driver, Dispatch, EmergencyRequest, User
-from .forms import AmbulanceForm, DriverForm, DispatchForm, EmergencyRequestForm, RegistrationForm, LoginForm
+from .forms import AmbulanceForm, DriverForm, DispatchForm, EmergencyRequestForm, RegistrationForm, LoginForm,  User
 
 # List all ambulances
 def ambulance_list(request):
@@ -138,31 +138,19 @@ def emergency_request_list(request):
 def register(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
+        print("POST data:", request.POST)   # Debugging purpose only
         if form.is_valid():
+            print("Form is valid!")
             user = form.save(commit=False)
-            # Hash password
-            user.password = make_password(form.cleaned_data["password"])
             user.save()
-
-            # Send confirmation email
-            send_mail(
-                "Welcome to E-Ambulance!",
-                f"Hi {user.firstname}, your account has been successfully created!",
-                settings.EMAIL_HOST_USER,
-                [user.email],
-                fail_silently=False,
-            )
-
-            messages.success(request, "Registration successful! Please login now.")
-            print("Registration successful, redirecting to login...")
-            return redirect("login")  
-        
-             # 👈 make sure urls.py has name="login"
+            return redirect("login")
+        else:
+            print("Form errors:", form.errors) # Debugging purpose only
     else:
         form = RegistrationForm()
-        print("Rendering registration form...")
+        print("Rendering empty form")
+
     return render(request, "register.html", {"form": form})
-     
 
 
 def login_view(request):
@@ -174,10 +162,10 @@ def login_view(request):
 
             try:
                 user = User.objects.get(email=email)
-                if check_password(password, user.password):  # ✅ Check hashed password
+                if check_password(password, user.password):  #   Check hashed password
                     request.session["user_id"] = user.userid
                     messages.success(request, "Login successful!")
-                    return redirect("home")   # 👈 this should be dashboard/home
+                    return redirect("home")   # Redirect to a dashboard or home page
                 else:
                     messages.error(request, "Invalid password.")
             except User.DoesNotExist:
@@ -197,8 +185,7 @@ def logout_view(request):
 def home(request):
     user_id = request.session.get("user_id")
     if not user_id:
-        return redirect("login")  # agar login nahi hai to login page bhej do
-
+        return redirect("login")  # if user not logged in, redirect to login
     user = User.objects.get(userid=user_id)
     return render(request, "home.html", {"user": user})
 
@@ -224,9 +211,9 @@ def drivers_list(request):
     return render(request, "drivers_list.html")
 # User Registration and Login 
 
-def register(request):
-    return render(request, "register.html")
-
+def my_requests(request):
+    requests = EmergencyRequest.objects.all()  # or filter by logged-in user
+    return render(request, "my_requests.html", {"requests": requests})
 def user_login(request):
     return render(request, "login.html")
  

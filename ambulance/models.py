@@ -40,7 +40,7 @@ class User(models.Model):
     phonenumber = models.CharField(max_length=15)
     password = models.CharField(max_length=128)
     date_of_birth = models.DateField(null=True, blank=True)
-    address = models.TextField(blank=True, null=True)
+    address = models.TextField(default="", blank=True)
 
     def save(self, *args, **kwargs):
         # Hash password before saving
