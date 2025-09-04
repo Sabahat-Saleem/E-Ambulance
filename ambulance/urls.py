@@ -35,8 +35,9 @@ urlpatterns = [
     path("dispatch/", views.dispatch_list, name="dispatch_list"),
     path("dispatch/create/", views.dispatch_create, name="dispatch_create"),
     path("dispatch/<int:pk>/complete/", views.dispatch_complete, name="dispatch_complete"),
-    path("emergency/requests/", views.emergency_request_list, name="emergency_request_list"),
-    path("emergency/request/new/", views.emergency_request_create, name="emergency_request_create"),
+    path("emergency-request/", views.emergency_request, name="emergency_request"),
+    path("emergency-requests/", views.emergency_request_list, name="emergency_request_list"),
     path("my-requests/", views.my_requests, name="my_requests"),
     path("logout/", views.logout_view, name="logout"),
+    path("track-request/<int:pk>/", views.track_request, name="track_request"),
 ]   

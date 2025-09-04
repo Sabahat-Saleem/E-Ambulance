@@ -36,17 +36,26 @@
   <!-- Page Content -->
   <div class="container mt-4">
     {% block content %}<div class="container mt-5">
-  <h2>Welcome, {{ user.firstname }} {{ user.lastname }} 👋</h2>
+  <h2>Welcome, {{ user.firstname }} {{ user.lastname }} </h2>
   <p>Email: {{ user.email }}</p>
   <p>Phone: {{ user.phonenumber }}</p>
 
-  <hr>
-  <h4>Quick Links</h4>
-  <ul>
-    <li><a href="{% url 'my_requests' %}">My Emergency Requests</a></li>
-    <li><a href="{% url 'ambulance_list' %}">Available Ambulances</a></li>
-    <li><a href="{% url 'logout' %}">Logout</a></li>
-  </ul>
+ <hr>
+<h4>Quick Links</h4>
+<ul>
+  <li><a href="{% url 'emergency_request' %}">My Emergency Requests</a></li>
+  <li><a href="{% url 'ambulance_list' %}">Available Ambulances</a></li>
+  <li><a href="{% url 'logout' %}">Logout</a></li>
+
+  {% for req in requests %}
+    <li>
+      🚑 {{ req.hospital_name }} ({{ req.request_type }}) - 
+      <a href="{% url 'track_request' req.id %}">Track</a>
+    </li>
+  {% empty %}
+    <li>No emergency requests yet.</li>
+  {% endfor %}
+</ul>
 </div>{% endblock %}
   </div>
 

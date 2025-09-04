@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h2>Dispatch Control</h2>
-    <a href="{% url 'dispatch_create' %}" class="btn btn-primary mb-3">➕ Assign New Dispatch</a>
-    <table class="table table-bordered">
-        <thead>
+<div class="container mt-4">
+    <h2 class="mb-3" style="color:#cc924f;">🚑 Dispatch Control</h2>
+
+    <a href="{% url 'dispatch_create' %}" class="btn mb-3"
+       style="background-color:#cc924f; color:white; border:none;">
+        ➕ Assign New Dispatch
+    </a>
+
+    <table class="table table-bordered table-striped shadow-sm">
+        <thead style="background-color:#cc924f; color:white;">
             <tr>
                 <th>ID</th>
-                <th>Request</th>
-                <th>User</th>
+                <th>Hospital</th>
+                <th>Pickup Address</th>
                 <th>Ambulance</th>
                 <th>Driver</th>
                 <th>Status</th>
@@ -19,23 +24,36 @@
         <tbody>
             {% for d in dispatches %}
             <tr>
-                <td>{{ d.dispatchid }}</td>
-                <td>{{ d.request.requestid }}</td>
-                <td>{{ d.request.user.firstname }} {{ d.request.user.lastname }}</td>
+                <td>{{ d.id }}</td>
+                <td>{{ d.request.hospital_name }}</td>
+                <td>{{ d.request.pickup_address }}</td>
                 <td>{{ d.ambulance.vehicle_number }}</td>
-                <td>{{ d.driver.firstname }} {{ d.driver.lastname }}</td>
-                <td>{{ d.request.status }}</td>
-                <td>{{ d.assigned_time }}</td>
+                <td>{{ d.driver.name }}</td>
                 <td>
-                    {% if d.request.status == "assigned" %}
-                        <a href="{% url 'dispatch_complete' d.pk %}" class="btn btn-success btn-sm">✅ Complete</a>
+                    {% if d.request.status == "Dispatched" %}
+                        <span class="badge" style="background-color:#cc924f;">🚨 Dispatched</span>
+                    {% elif d.request.status == "Completed" %}
+                        <span class="badge bg-success">✅ Completed</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ d.request.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ d.assigned_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    {% if d.request.status == "Dispatched" %}
+                        <a href="{% url 'dispatch_complete' d.pk %}" class="btn btn-sm"
+                           style="background-color:#cc924f; color:white; border:none;">
+                            ✅ Complete
+                        </a>
                     {% else %}
                         -
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="8" class="text-center">No dispatches yet.</td></tr>
+            <tr>
+                <td colspan="8" class="text-center">No dispatches yet 🚑</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>

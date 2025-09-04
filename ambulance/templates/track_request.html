@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-center text-danger">Track Your Ambulance</h2>
+
+  {% if dispatch %}
+    <div class="card shadow p-3">
+      <h4>🚑 Ambulance Assigned</h4>
+      <p><strong>Ambulance:</strong> {{ dispatch.ambulance.vehicle_number }}</p>
+      <p><strong>Driver:</strong> {{ dispatch.driver.firstname }} {{ dispatch.driver.lastname }}</p>
+      <p><strong>Status:</strong> {{ dispatch.status|title }}</p>
+      <p><strong>ETA:</strong> ~{{ dispatch.eta_minutes }} minutes</p>
+
+      <div id="map" style="height: 300px; border-radius: 10px;"></div>
+    </div>
+
+    <script>
+      function initMap() {
+        var ambulance = {lat: {{ dispatch.ambulance_lat }}, lng: {{ dispatch.ambulance_lng }}};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 14, center: ambulance
+        });
+        var marker = new google.maps.Marker({position: ambulance, map: map, title: "Ambulance"});
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    async defer></script>
+
+  {% else %}
+    <div class="alert alert-warning text-center">No ambulance assigned yet. Please wait.</div>
+  {% endif %}
+</div>
+{% endblock %}

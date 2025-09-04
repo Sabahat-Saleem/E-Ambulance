@@ -6,7 +6,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import Ambulance, Driver, Dispatch, EmergencyRequest, User
 from .forms import AmbulanceForm, DriverForm, DispatchForm, EmergencyRequestForm, RegistrationForm, LoginForm,  User
-
+from django.utils import timezone
+from datetime import timedelta
 # List all ambulances
 def ambulance_list(request):
     ambulances = Ambulance.objects.all()
@@ -45,7 +46,6 @@ def ambulance_delete(request, pk):
 
 
  #*************************************** Driver Views ***************************************#
-
  # List all drivers
 def driver_list(request):
     drivers = Driver.objects.all()
@@ -93,11 +93,14 @@ def dispatch_create(request):
         form = DispatchForm(request.POST)
         if form.is_valid():
             dispatch = form.save(commit=False)
-            # Update statuses
-            dispatch.request.status = "assigned"
+
+            # ✅ Update request + ambulance status
+            dispatch.request.status = "Dispatched"
             dispatch.request.save()
+
             dispatch.ambulance.current_status = "on_call"
             dispatch.ambulance.save()
+
             dispatch.save()
             return redirect("dispatch_list")
     else:
@@ -108,32 +111,63 @@ def dispatch_create(request):
 def dispatch_complete(request, pk):
     dispatch = get_object_or_404(Dispatch, pk=pk)
     if request.method == "POST":
-        dispatch.request.status = "completed"
+        dispatch.request.status = "Completed"
         dispatch.request.save()
+
         dispatch.ambulance.current_status = "available"
         dispatch.ambulance.save()
+
+        dispatch.save()
         return redirect("dispatch_list")
     return render(request, "dispatch_complete_confirm.html", {"dispatch": dispatch})
 
-def emergency_request_create(request):
+def mark_as_dispatched(self, request, queryset):
+    available_ambulance = Ambulance.objects.filter(current_status="Available").first()
+    if not available_ambulance:
+        self.message_user(request, "No available ambulance right now.", level="error")
+        return
+
+    for req in queryset:
+        req.status = "Dispatched"
+        req.save()
+
+        Dispatch.objects.create(
+            emergency_request=req,
+            ambulance=available_ambulance,
+            current_lat=24.8607,   # Example: Karachi lat
+            current_lng=67.0011,  # Example: Karachi lng
+            estimated_arrival=timezone.now() + timedelta(minutes=15)  # Dummy ETA
+        )
+
+        available_ambulance.current_status = "On Call"
+        available_ambulance.save()
+
+    self.message_user(request, "Requests dispatched successfully!")
+
+# List all emergency requests
+def emergency_request(request):
     if request.method == "POST":
         form = EmergencyRequestForm(request.POST)
         if form.is_valid():
-            emergency_request = form.save(commit=False)
-            emergency_request.user = request.user  # logged in user
-            emergency_request.save()
-            return redirect("emergency_request_list")
+            form.save()
+            return redirect("home")  # after saving, redirect to homepage
     else:
         form = EmergencyRequestForm()
-    return render(request, "emergency_request_form.html", {"form": form})
 
-# List all emergency requests
+    return render(request, "emergency_request.html", {"form": form})
+
 def emergency_request_list(request):
-    requests = EmergencyRequest.objects.all().order_by("-request_time")
+    requests = EmergencyRequest.objects.all().order_by("-created_at")
     return render(request, "emergency_request_list.html", {"requests": requests})
 
+def track_request(request, pk):
+    emergency_request = get_object_or_404(EmergencyRequest, pk=pk)
+    dispatch = Dispatch.objects.filter(request=emergency_request).first()
+    return render(request, "track_request.html", {
+        "request": emergency_request,
+        "dispatch": dispatch
+    })
 
-# Login and Registration Views
 
 def register(request):
     if request.method == "POST":
@@ -151,7 +185,6 @@ def register(request):
         print("Rendering empty form")
 
     return render(request, "register.html", {"form": form})
-
 
 def login_view(request):
     if request.method == "POST":
@@ -185,9 +218,17 @@ def logout_view(request):
 def home(request):
     user_id = request.session.get("user_id")
     if not user_id:
-        return redirect("login")  # if user not logged in, redirect to login
-    user = User.objects.get(userid=user_id)
-    return render(request, "home.html", {"user": user})
+        return redirect("login")
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect("login")
+
+    # Current user ki requests lao
+    requests = EmergencyRequest.objects.filter(customer_mobile=user.phonenumber).order_by("-created_at")
+
+    return render(request, "home.html", {"user": user, "requests": requests})
 
 def about(request):
     return render(request, "about.html")

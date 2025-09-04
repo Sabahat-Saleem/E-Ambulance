@@ -54,30 +54,46 @@ class User(models.Model):
 
 
 class EmergencyRequest(models.Model):
-    REQUEST_STATUS = [
-        ("pending", "Pending"),
-        ("assigned", "Assigned"),
-        ("completed", "Completed"),
-        ("cancelled", "Cancelled"),
+    REQUEST_TYPE_CHOICES = [
+        ("Emergency", "Emergency"),
+        ("Non-Emergency", "Non-Emergency"),
     ]
 
-    requestid = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    description = models.TextField()   # NEW: Reason for emergency
-    request_time = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=15, choices=REQUEST_STATUS, default="pending")
+    hospital_name = models.CharField(max_length=255, blank=True, null=True)
+    hospital_address = models.TextField(blank=True, null=True)
+    customer_mobile = models.CharField(max_length=15, blank=True, null=True)
+    pickup_address = models.TextField(blank=True, null=True)
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("Pending", "Pending"),
+            ("Approved", "Approved"),
+            ("Dispatched", "Dispatched"),
+            ("Rejected", "Rejected"),
+        ],
+        default="Pending"
+    )
 
     def __str__(self):
-        return f"Request {self.requestid} - {self.status}"
-
-
+        return f"{self.hospital_name or 'Unknown'} - {self.request_type} ({self.status})"
 
 class Dispatch(models.Model):
     dispatchid = models.AutoField(primary_key=True)
-    request = models.OneToOneField(EmergencyRequest, on_delete=models.CASCADE)
-    ambulance = models.ForeignKey("Ambulance", on_delete=models.CASCADE)
-    driver = models.ForeignKey("Driver", on_delete=models.CASCADE, null=True, blank=True)
+    request = models.ForeignKey(EmergencyRequest, on_delete=models.CASCADE)
+    ambulance = models.ForeignKey(Ambulance, on_delete=models.CASCADE)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, null=True, blank=True)
     assigned_time = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        
+        max_length=20,
+        choices=[("assigned", "Assigned"), ("completed", "Completed")],
+        default="assigned"
+    )
+    eta_minutes = models.IntegerField(default=15)  # estimated arrival
+    ambulance_lat = models.FloatField(default=24.8607)  # sample coords (Karachi)
+    ambulance_lng = models.FloatField(default=67.0011)
 
     def __str__(self):
-        return f"Dispatch {self.dispatchid} - {self.ambulance.vehicle_number}"
+        return f"Dispatch {self.dispatchid} → {self.request.hospital_name}"

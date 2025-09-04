@@ -24,23 +24,21 @@ class DispatchForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only show pending requests
-        self.fields["request"].queryset = EmergencyRequest.objects.filter(status="pending")
-        # Show meaningful text for requests
-        self.fields["request"].label_from_instance = (
-            lambda obj: f"{obj.emergency_type} - {obj.description[:30]} (#{obj.requestid})"
-        )
-        # Only available ambulances
+        self.fields["request"].queryset = EmergencyRequest.objects.filter(status="Pending")
         self.fields["ambulance"].queryset = Ambulance.objects.filter(current_status="available")
-        # Drivers (all for now, can filter later)
         self.fields["driver"].queryset = Driver.objects.all()
+
 
 class EmergencyRequestForm(forms.ModelForm):
     class Meta:
         model = EmergencyRequest
-        fields = ["description"]   # user auto-fill hoga, status default pending
+        fields = ["hospital_name", "hospital_address", "customer_mobile", "pickup_address", "request_type"]
         widgets = {
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "hospital_name": forms.TextInput(attrs={"class": "form-control"}),
+            "hospital_address": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "customer_mobile": forms.TextInput(attrs={"class": "form-control"}),
+            "pickup_address": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "request_type": forms.Select(attrs={"class": "form-control"}),
         }
 
 class RegistrationForm(forms.ModelForm):
