@@ -1,0 +1,70 @@
+{% extends "home.html" %}
+{% block content %}
+
+<div class="container py-5">
+  <!-- Heading -->
+  <div class="text-center mb-5">
+    <h2 class="fw-bold text-dark animate__animated animate__fadeInDown">
+      🚑 Our <span style="color:#cc924f;">Ambulance Types</span>
+    </h2>
+    <p class="text-muted fs-5">
+      Choose the right ambulance service based on your needs.  
+      We provide multiple types of ambulances equipped with modern facilities.
+    </p>
+  </div>
+
+  <!-- Ambulance Types -->
+  <div class="row g-4">
+    <!-- Basic Ambulance -->
+    <div class="col-md-4 animate__animated animate__zoomIn">
+      <div class="card shadow border-0 h-100">
+        <img src="https://img.freepik.com/free-photo/white-ambulance-van_23-2148970965.jpg" class="card-img-top" alt="Basic Ambulance" style="height:200px; object-fit:cover;">
+        <div class="card-body text-center">
+          <h5 class="card-title text-dark">Basic Ambulance</h5>
+          <p class="card-text text-muted">
+            For non-critical patients. Equipped with basic first aid and stretcher facilities.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Life Support Ambulance -->
+    <div class="col-md-4 animate__animated animate__zoomIn" style="animation-delay:0.2s;">
+      <div class="card shadow border-0 h-100">
+        <img src="https://img.freepik.com/free-photo/modern-emergency-vehicle_23-2148990678.jpg" class="card-img-top" alt="Advanced Ambulance" style="height:200px; object-fit:cover;">
+        <div class="card-body text-center">
+          <h5 class="card-title text-dark">Advanced Life Support (ALS)</h5>
+          <p class="card-text text-muted">
+            For critical emergencies. Equipped with ventilator, oxygen, defibrillator, and monitoring systems.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ICU on Wheels -->
+    <div class="col-md-4 animate__animated animate__zoomIn" style="animation-delay:0.4s;">
+      <div class="card shadow border-0 h-100">
+        <img src="https://img.freepik.com/free-photo/ambulance-interior-medical-equipment_23-2148990662.jpg" class="card-img-top" alt="ICU Ambulance" style="height:200px; object-fit:cover;">
+        <div class="card-body text-center">
+          <h5 class="card-title text-dark">ICU on Wheels</h5>
+          <p class="card-text text-muted">
+            Specially designed for patients needing intensive care during transfer. Staffed with paramedics.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="text-center mt-5 animate__animated animate__fadeInUp">
+    <h4>Need an ambulance right now?</h4>
+    <a href="{% url 'emergency_request' %}" class="btn btn-lg text-white mt-3" style="background-color:#cc924f;">
+      Request Ambulance
+    </a>
+  </div>
+</div>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}

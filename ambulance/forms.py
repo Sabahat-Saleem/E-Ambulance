@@ -32,7 +32,7 @@ class DispatchForm(forms.ModelForm):
 class EmergencyRequestForm(forms.ModelForm):
     class Meta:
         model = EmergencyRequest
-        fields = ["hospital_name", "hospital_address", "customer_mobile", "pickup_address", "request_type"]
+        fields = ["hospital_name", "hospital_address", "pickup_address", "request_type"]
         widgets = {
             "hospital_name": forms.TextInput(attrs={"class": "form-control"}),
             "hospital_address": forms.Textarea(attrs={"class": "form-control", "rows": 2}),

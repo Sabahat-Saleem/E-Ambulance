@@ -1,14 +1,28 @@
 {% extends "home.html" %}
 {% block content %}
-<div class="container mt-5 d-flex justify-content-center">
-  <div class="card shadow p-4" style="max-width: 600px; width: 100%;">
-    <h2 class="text-center text-danger mb-4">Emergency Request</h2>
-
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-danger w-100 mt-2">Submit Request</button>
-    </form>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg border-0">
+        <div class="card-header text-center text-white" style="background-color:#cc924f;">
+          <h4 class="mb-0">🚨 Book an Ambulance</h4>
+        </div>
+        <div class="card-body p-4">
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="d-grid">
+              <button type="submit" class="btn btn-dark btn-lg">
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="card-footer text-center text-muted">
+          <small>Our team will assign an ambulance and driver shortly 🚑</small>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

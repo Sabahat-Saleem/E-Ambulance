@@ -40,4 +40,6 @@ urlpatterns = [
     path("my-requests/", views.my_requests, name="my_requests"),
     path("logout/", views.logout_view, name="logout"),
     path("track-request/<int:pk>/", views.track_request, name="track_request"),
+    path("ambulance-list/", views.ambulance_list_user, name="ambulance_list"),
+    path("drivers-list/", views.drivers_list_user, name="drivers_list"),
 ]   

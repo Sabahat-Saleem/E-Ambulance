@@ -11,7 +11,7 @@ class AmbulanceAdmin(admin.ModelAdmin):
 
 @admin.register(EmergencyRequest)
 class EmergencyRequestAdmin(admin.ModelAdmin):
-    list_display = ("hospital_name", "hospital_address", "customer_mobile", "pickup_address", "request_type", "status", "created_at")
+    list_display = ("hospital_name", "hospital_address", "user", "status", "created_at")
     list_filter = ("status", "request_type", "created_at")
     search_fields = ("hospital_name", "customer_mobile", "pickup_address")
 

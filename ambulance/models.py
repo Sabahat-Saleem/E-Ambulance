@@ -54,30 +54,18 @@ class User(models.Model):
 
 
 class EmergencyRequest(models.Model):
-    REQUEST_TYPE_CHOICES = [
-        ("Emergency", "Emergency"),
-        ("Non-Emergency", "Non-Emergency"),
-    ]
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE)   # direct relation
     hospital_name = models.CharField(max_length=255, blank=True, null=True)
     hospital_address = models.TextField(blank=True, null=True)
-    customer_mobile = models.CharField(max_length=15, blank=True, null=True)
     pickup_address = models.TextField(blank=True, null=True)
-    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES)
+    request_type = models.CharField(max_length=20, choices=[("Emergency", "Emergency"), ("Non-Emergency", "Non-Emergency")])
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=20,
-        choices=[
-            ("Pending", "Pending"),
-            ("Approved", "Approved"),
-            ("Dispatched", "Dispatched"),
-            ("Rejected", "Rejected"),
-        ],
+        choices=[("Pending", "Pending"), ("Approved", "Approved"), ("Dispatched", "Dispatched"), ("Completed", "Completed"), ("Rejected", "Rejected")],
         default="Pending"
     )
 
-    def __str__(self):
-        return f"{self.hospital_name or 'Unknown'} - {self.request_type} ({self.status})"
 
 class Dispatch(models.Model):
     dispatchid = models.AutoField(primary_key=True)

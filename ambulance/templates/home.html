@@ -5,6 +5,134 @@
   <title>E-Ambulance</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
+<style>
+  :root{
+    --brand:#cc924f;
+    --brand-ink:#1a0c0c;
+    --ink:#1f1f1f;
+    --muted:#6b6b6b;
+    --bg:#faf8f5;
+    --card:#ffffff;
+    --ring: rgba(204,146,79,.35);
+  }
+
+  /* --- Global --- */
+  html,body{background:var(--bg); color:var(--ink);}
+  .container, .container-fluid{max-width:1200px;}
+  h1,h2,h3,h4{letter-spacing:.3px}
+  a{transition:all .2s ease}
+
+  /* --- Navbar --- */
+  .navbar{background:var(--brand)!important; backdrop-filter:saturate(120%) blur(2px)}
+  .navbar .navbar-brand{
+    color:#fff!important; font-weight:800; letter-spacing:.5px;
+  }
+  .navbar .nav-link{
+    color:#fff!important; font-weight:600; border-radius:10px; padding:.55rem .9rem;
+    opacity:.95;
+  }
+  .navbar .nav-link:hover{background:#fff;color:var(--brand) !important; box-shadow:0 6px 18px rgba(0,0,0,.07)}
+
+  /* --- Hero / Welcome --- */
+  .page-welcome{
+    background: radial-gradient(1200px 400px at 10% -10%, rgba(204,146,79,.15), transparent 60%),
+                radial-gradient(800px 400px at 100% 0%, rgba(204,146,79,.12), transparent 60%);
+    border:1px solid rgba(204,146,79,.18);
+    border-radius:18px;
+    padding:28px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+  }
+  .page-welcome h2{
+    font-weight:800;
+  }
+  .page-welcome p{color:var(--muted); margin-bottom:.2rem}
+
+  /* --- Section titles --- */
+  .section-title{
+    display:flex; align-items:center; gap:.6rem; margin:2.2rem 0 1rem;
+    font-weight:800;
+  }
+  .section-title::after{
+    content:""; flex:1; height:2px; background:linear-gradient(90deg,var(--brand),transparent);
+    border-radius:2px; opacity:.4;
+  }
+
+  /* --- Cards (requests / ambulances / drivers) --- */
+  .card{
+    border:1px solid rgba(0,0,0,.04);
+    border-radius:16px;
+    background:var(--card);
+    box-shadow:0 10px 24px rgba(0,0,0,.06);
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 36px rgba(0,0,0,.10);
+    border-color: var(--ring);
+  }
+  .card .card-title{font-weight:800; letter-spacing:.2px}
+  .card .badge{font-size:.8rem; padding:.5rem .7rem; border-radius:999px}
+  .shadow{box-shadow:0 10px 24px rgba(0,0,0,.06)!important}
+
+  /* --- Buttons --- */
+  .btn{
+    border-radius:12px; font-weight:700; letter-spacing:.2px;
+    padding:.55rem 1rem; box-shadow:0 6px 16px rgba(0,0,0,.06);
+  }
+  .btn-outline-dark:hover{box-shadow:0 12px 26px rgba(0,0,0,.15)}
+  .btn-primary, .btn-outline-primary:hover{
+    background:var(--brand); border-color:var(--brand);
+  }
+  .btn-outline-primary{color:var(--brand); border-color:var(--brand)}
+
+  /* --- Quick Links (cards as links) --- */
+  .card.text-center.text-decoration-none{
+    border:1px solid rgba(204,146,79,.15);
+  }
+  .card.text-center.text-decoration-none:hover{
+    border-color:var(--brand);
+  }
+
+  /* --- Badges polish --- */
+  .badge.bg-warning.text-dark{background:linear-gradient(#ffd769,#ffbd3c)}
+  .badge.bg-primary{background:linear-gradient(#7aa6ff,#356dff)}
+  .badge.bg-success{background:linear-gradient(#6bd08b,#35b868)}
+  .badge.bg-danger{background:linear-gradient(#ff8080,#ff5454)}
+  .badge.bg-info{background:linear-gradient(#7dd8ff,#49c2f0)}
+
+  /* --- Lists & grids --- */
+  .row.g-4 > [class*="col-"]{display:flex}
+  .row.g-4 .card{width:100%}
+
+  /* --- Footer --- */
+  footer{
+    background:var(--brand); color:var(--brand-ink);
+    border-top:1px solid rgba(0,0,0,.06);
+    box-shadow:0 -8px 24px rgba(0,0,0,.05) inset;
+  }
+  footer a{color:#110d07; font-weight:700}
+  footer a:hover{text-decoration:underline}
+
+  /* --- Utilities --- */
+  .pill{border-radius:999px}
+  .ring{box-shadow:0 0 0 4px var(--ring)}
+  .muted{color:var(--muted)}
+
+  /* --- Small motion (reduced-motion friendly) --- */
+  @media (prefers-reduced-motion:no-preference){
+    .fade-up{opacity:0; transform:translateY(10px); animation:fadeUp .5s ease forwards}
+    .fade-in{opacity:0; animation:fadeIn .45s ease forwards}
+  }
+  @keyframes fadeUp{to{opacity:1; transform:none}}
+  @keyframes fadeIn{to{opacity:1}}
+  
+  /* --- Responsive tweaks --- */
+  @media (max-width: 991.98px){
+    .navbar .nav-link{padding:.5rem .75rem}
+    .page-welcome{padding:20px}
+  }
+</style>
+
 <body>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg" style="background-color: #cc924fff;">
@@ -13,18 +141,16 @@
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
-
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <!-- Static Pages -->
+           <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'gallery' %}">Image Gallery</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact Us</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'ambulance_types' %}">Ambulance Types</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'feedback' %}">Feedback</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'costs' %}">Ambulance Costs</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'drivers_list' %}">Driver’s List</a></li>
-
           <!-- User Accounts -->
           <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
@@ -35,30 +161,100 @@
 
   <!-- Page Content -->
   <div class="container mt-4">
-    {% block content %}<div class="container mt-5">
-  <h2>Welcome, {{ user.firstname }} {{ user.lastname }} </h2>
-  <p>Email: {{ user.email }}</p>
-  <p>Phone: {{ user.phonenumber }}</p>
+  {% block content %}
+  <div class="container mt-5">
+    <h2>Welcome, {{ user.firstname }} {{ user.lastname }} </h2>
+    <p>Email: {{ user.email }}</p>
+    <p>Phone: {{ user.phonenumber }}</p>
 
- <hr>
-<h4>Quick Links</h4>
-<ul>
-  <li><a href="{% url 'emergency_request' %}">My Emergency Requests</a></li>
-  <li><a href="{% url 'ambulance_list' %}">Available Ambulances</a></li>
-  <li><a href="{% url 'logout' %}">Logout</a></li>
+    <hr>
+    <h4>Quick Links</h4>
+    <ul>
+      <li><a href="{% url 'emergency_request' %}">My Emergency Requests</a></li>
+      <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
 
-  {% for req in requests %}
-    <li>
-      🚑 {{ req.hospital_name }} ({{ req.request_type }}) - 
-      <a href="{% url 'track_request' req.id %}">Track</a>
-    </li>
+    <!-- My Requests -->
+    {% for req in requests %}
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ req.hospital_name }}</h5>
+          <p class="card-text">
+            Request Type: <strong>{{ req.request_type }}</strong><br>
+            Status: 
+            {% if req.status == "Pending" %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% elif req.status == "Assigned" %}
+              <span class="badge bg-primary">Ambulance Assigned</span>
+            {% elif req.status == "Completed" %}
+              <span class="badge bg-success">Completed</span>
+            {% else %}
+              <span class="badge bg-secondary">{{ req.status }}</span>
+            {% endif %}
+          </p>
+          <a href="{% url 'track_request' req.id %}" class="btn btn-sm btn-outline-dark">Track</a>
+        </div>
+      </div>
+    {% empty %}
+      <p>No emergency requests yet.</p>
+    {% endfor %}
+
+    <!-- 🚑 Available Ambulances -->
+   <!-- 🚑 Available Ambulances -->
+<h4 class="mt-5 mb-3 text-center">Available Ambulances</h4>
+<div class="row g-4">
+  {% for ambulance in ambulances %}
+    <div class="col-md-4">
+      <div class="card shadow text-center h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ ambulance.vehicle_number }}</h5>
+          <p><strong>Type:</strong> {{ ambulance.equipment_level }}</p>
+          <p>
+            <strong>Status:</strong>
+            {% if ambulance.current_status|lower == 'available' %}
+              <span class="badge bg-success">Available</span>
+            {% else %}
+              <span class="badge bg-danger">{{ ambulance.current_status }}</span>
+            {% endif %}
+          </p>
+          <a href="{% url 'emergency_request' %}" 
+             class="btn btn-outline-primary btn-sm mt-2">
+             Book Now
+          </a>
+        </div>
+      </div>
+    </div>
   {% empty %}
-    <li>No emergency requests yet.</li>
+    <p class="text-muted">No ambulances available at the moment.</p>
   {% endfor %}
-</ul>
-</div>{% endblock %}
+</div>
   </div>
 
+    <!-- 👨‍✈️ Drivers List -->
+    <h4 class="mt-5 mb-3 text-center">Drivers List</h4>
+    <div class="row g-4">
+      {% for driver in drivers %}
+        <div class="col-md-4">
+          <div class="card shadow text-center h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ driver.firstname }} {{ driver.lastname }}</h5>
+              <p><strong>License:</strong> {{ driver.license_number }}</p>
+              <p><strong>Contact:</strong> {{ driver.phonenumber }}</p>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted">No drivers available at the moment.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% endblock %}
+</div>
+
+   <footer>
+    <p class="mb-1" style ="text-align: center;">© 2025 E-Ambulance. All Rights Reserved.</p>
+    <p class="mb-0" style ="text-align: center;">Made with ❤️ to save lives | <a href="{% url 'contact' %}">Contact Us</a></p>
+  </footer>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

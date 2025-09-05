@@ -8,6 +8,7 @@ from .models import Ambulance, Driver, Dispatch, EmergencyRequest, User
 from .forms import AmbulanceForm, DriverForm, DispatchForm, EmergencyRequestForm, RegistrationForm, LoginForm,  User
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Prefetch
 # List all ambulances
 def ambulance_list(request):
     ambulances = Ambulance.objects.all()
@@ -23,7 +24,6 @@ def ambulance_create(request):
     else:
         form = AmbulanceForm()
     return render(request, "ambulance_form.html", {"form": form, "title": "Add Ambulance"})
-
 # Update ambulance
 def ambulance_update(request, pk):
     ambulance = get_object_or_404(Ambulance, pk=pk)
@@ -149,11 +149,13 @@ def emergency_request(request):
     if request.method == "POST":
         form = EmergencyRequestForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect("home")  # after saving, redirect to homepage
+            req = form.save(commit=False)
+            req.user = User.objects.get(pk=request.session["user_id"])
+            req.save()
+            messages.success(request, "🚑 Your emergency request has been submitted!")
+            return redirect("home")
     else:
         form = EmergencyRequestForm()
-
     return render(request, "emergency_request.html", {"form": form})
 
 def emergency_request_list(request):
@@ -167,7 +169,6 @@ def track_request(request, pk):
         "request": emergency_request,
         "dispatch": dispatch
     })
-
 
 def register(request):
     if request.method == "POST":
@@ -213,7 +214,6 @@ def logout_view(request):
     messages.success(request, "You have been logged out.")
     return redirect("login")
 #*************************************** Static Page Views ***************************************#
-
 # Static Pages
 def home(request):
     user_id = request.session.get("user_id")
@@ -225,13 +225,21 @@ def home(request):
     except User.DoesNotExist:
         return redirect("login")
 
-    # Current user ki requests lao
-    requests = EmergencyRequest.objects.filter(customer_mobile=user.phonenumber).order_by("-created_at")
+    # User requests
+    requests = EmergencyRequest.objects.filter(user=user).order_by("-created_at")
 
-    return render(request, "home.html", {"user": user, "requests": requests})
+    # Show all ambulances + drivers
+    ambulances = Ambulance.objects.all()
+    drivers = Driver.objects.all()
 
+    return render(request, "home.html", {
+        "user": user,
+        "requests": requests,
+        "ambulances": ambulances,
+        "drivers": drivers
+    })
 def about(request):
-    return render(request, "about.html")
+    return render(request, "about-us.html")
 
 def gallery(request):
     return render(request, "gallery.html")
@@ -258,3 +266,12 @@ def my_requests(request):
 def user_login(request):
     return render(request, "login.html")
  
+# views.py
+def ambulance_list_user(request):
+    ambulances = Ambulance.objects.all()   # sirf show karna, add/edit nahi
+    return render(request, "ambulance_list_user.html", {"ambulances": ambulances})
+
+# views.py
+def drivers_list_user(request):
+    drivers = Driver.objects.all()  # sirf show karna
+    return render(request, "drivers_list_user.html", {"drivers": drivers})
