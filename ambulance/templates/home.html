@@ -131,8 +131,167 @@
     .navbar .nav-link{padding:.5rem .75rem}
     .page-welcome{padding:20px}
   }
-</style>
 
+.quick-links-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 20px 25px;
+  margin: 20px 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-links-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+}
+
+.quick-links-card h4 {
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #d35400;
+  margin-bottom: 15px;
+}
+
+.quick-links-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.quick-links-card li {
+  margin-bottom: 12px;
+}
+
+.quick-links-card a {
+  display: inline-block;
+  padding: 10px 18px;
+  background: linear-gradient(90deg, #e67e22, #d35400);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 25px;
+  transition: background 0.3s ease;
+}
+
+.quick-links-card a:hover {
+  background: linear-gradient(90deg, #d35400, #a84300);
+  color: #fff;
+}
+.request-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.request-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Header section */
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.hospital-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #d35400;
+  margin: 0;
+}
+
+/* Status badge */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: #fff;
+}
+
+.status-badge.pending {
+  background: #f39c12;
+}
+
+.status-badge.dispatched,
+.status-badge.assigned {
+  background: #2980b9;
+}
+
+.status-badge.completed {
+  background: #27ae60;
+}
+
+.status-badge.expired {
+  background: #7f8c8d;
+}
+
+/* Body section */
+.request-body {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.request-body strong {
+  color: #000;
+}
+
+/* Track button */
+.track-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(90deg, #e67e22, #cc924fff);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 25px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.track-btn:hover {
+  background: linear-gradient(90deg, #cc924fff, #cc924fff);
+}
+/* Footer styling */
+footer {
+  background: #cc924fff;
+  color: #fff;
+  padding: 9px 0;
+  text-align: center;
+  margin-top: 16px;   /* pushes footer to bottom */
+}
+
+/* Footer links */
+footer a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+footer a:hover {
+  color: #cc924fff;
+}
+
+/* Ensure page uses full height */
+html, body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content wrapper to push footer down */
+.container, .content {
+  flex: 1;
+}
+
+</style>
 <body>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg" style="background-color: #cc924fff;">
@@ -150,10 +309,12 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'ambulance_types' %}">Ambulance Types</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'feedback' %}">Feedback</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'costs' %}">Ambulance Costs</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'drivers_list' %}">Driver’s List</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
           <!-- User Accounts -->
           <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+          <!-- Dashboard -->
+         <li> <a class="nav-link" href="{% url 'chat_view' requests.0.id %}">Dashboard</a></li>
         </ul>
       </div>
     </div>
@@ -168,39 +329,40 @@
     <p>Phone: {{ user.phonenumber }}</p>
 
     <hr>
-    <h4>Quick Links</h4>
-    <ul>
-      <li><a href="{% url 'emergency_request' %}">My Emergency Requests</a></li>
-      <li><a href="{% url 'logout' %}">Logout</a></li>
-    </ul>
-
+    <hr>
+<div class="quick-links-card">
+  <h4>Quick Links</h4>
+  <ul>
+    <li><a href="{% url 'emergency_request' %}">Request Ambulance </a></li>
+  </ul>
+</div>
     <!-- My Requests -->
-    {% for req in requests %}
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">{{ req.hospital_name }}</h5>
-          <p class="card-text">
-            Request Type: <strong>{{ req.request_type }}</strong><br>
-            Status: 
-            {% if req.status == "Pending" %}
-              <span class="badge bg-warning text-dark">Pending</span>
-            {% elif req.status == "Assigned" %}
-              <span class="badge bg-primary">Ambulance Assigned</span>
-            {% elif req.status == "Completed" %}
-              <span class="badge bg-success">Completed</span>
-            {% else %}
-              <span class="badge bg-secondary">{{ req.status }}</span>
-            {% endif %}
-          </p>
-          <a href="{% url 'track_request' req.id %}" class="btn btn-sm btn-outline-dark">Track</a>
-        </div>
-      </div>
-    {% empty %}
-      <p>No emergency requests yet.</p>
-    {% endfor %}
+  {% for req in requests %}
+  <div class="request-card mb-4">
+    <div class="request-header">
+      <h5 class="hospital-name">{{ req.hospital_name }}</h5>
+      <span class="status-badge {{ req.status|lower }}">
+        {{ req.status }}
+      </span>
 
-    <!-- 🚑 Available Ambulances -->
-   <!-- 🚑 Available Ambulances -->
+    </div>
+    <div class="request-body">
+      <p>
+        <strong>Request Type:</strong> {{ req.request_type|title }} <br>
+        <strong>Hospital Address:</strong> {{ req.hospital_address }}
+      </p>
+      <a href="{% url 'track_request' req.id %}" class="track-btn">
+         Track Ambulance
+      </a>
+      <a href="{% url 'chat_view' req.id %}">Chat</a>
+
+    </div>
+  </div>
+{% empty %}
+  <p>No emergency requests yet.</p>
+{% endfor %}
+    
+   <!-- Available Ambulances -->
 <h4 class="mt-5 mb-3 text-center">Available Ambulances</h4>
 <div class="row g-4">
   {% for ambulance in ambulances %}
@@ -251,9 +413,9 @@
   {% endblock %}
 </div>
 
-   <footer>
-    <p class="mb-1" style ="text-align: center;">© 2025 E-Ambulance. All Rights Reserved.</p>
-    <p class="mb-0" style ="text-align: center;">Made with ❤️ to save lives | <a href="{% url 'contact' %}">Contact Us</a></p>
+  <footer>
+    <p class="mb-1">© 2025 E-Ambulance. All Rights Reserved.</p>
+    <p class="mb-0">Made with ❤️ to save lives | <a href="{% url 'contact' %}">Contact Us</a></p>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

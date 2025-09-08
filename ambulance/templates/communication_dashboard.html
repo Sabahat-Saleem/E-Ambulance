@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Communication Dashboard</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Hospital</th>
+        <th>Status</th>
+        <th>Chat</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+        <tr>
+          <td>{{ req.id }}</td>
+          <td>{{ req.hospital_name }}</td>
+          <td>{{ req.status }}</td>
+          <td>
+            <a href="{% url 'chat_view' req.id %}" class="btn btn-sm btn-outline-primary">
+              💬 Open Chat
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No requests found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from datetime import timedelta
+from django.utils import timezone
 
 class Ambulance(models.Model):
     AMBULANCE_STATUS = [
@@ -54,17 +56,36 @@ class User(models.Model):
 
 
 class EmergencyRequest(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)   # direct relation
-    hospital_name = models.CharField(max_length=255, blank=True, null=True)
-    hospital_address = models.TextField(blank=True, null=True)
-    pickup_address = models.TextField(blank=True, null=True)
-    request_type = models.CharField(max_length=20, choices=[("Emergency", "Emergency"), ("Non-Emergency", "Non-Emergency")])
-    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    ambulance = models.ForeignKey(Ambulance, on_delete=models.CASCADE, null=True, blank=True)
+    request_time = models.DateTimeField(auto_now_add=True)  # already hai
+    expiry_time = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)  # 👈 yeh add karo
+
     status = models.CharField(
         max_length=20,
-        choices=[("Pending", "Pending"), ("Approved", "Approved"), ("Dispatched", "Dispatched"), ("Completed", "Completed"), ("Rejected", "Rejected")],
-        default="Pending"
+        choices=[
+            ('pending', 'Pending'),
+            ('accepted', 'Accepted'),
+            ('completed', 'Completed'),
+            ('expired', 'Expired'),
+        ],
+        default='pending'
     )
+
+    pickup_address = models.CharField(max_length=255, null=True, blank=True)
+    hospital_name = models.CharField(max_length=255, null=True, blank=True)
+    hospital_address = models.CharField(max_length=255, null=True, blank=True)
+    request_type = models.CharField(
+        max_length=50,
+        choices=[('emergency', 'Emergency'), ('normal', 'Normal')],
+        default='emergency'
+    )
+
+    def __str__(self):
+        return f"{self.hospital_name} ({self.request_type}) - {self.status}"
+
 
 
 class Dispatch(models.Model):
@@ -85,3 +106,24 @@ class Dispatch(models.Model):
 
     def __str__(self):
         return f"Dispatch {self.dispatchid} → {self.request.hospital_name}"
+    def is_free(self):
+        return timezone.now() >= self.assigned_time + timedelta(minutes=30)
+    
+class ChatMessage(models.Model):
+    request = models.ForeignKey("EmergencyRequest", on_delete=models.CASCADE)
+    sender = models.ForeignKey("User", on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.sender.firstname}: {self.message[:20]}"
+
+class NotificationLog(models.Model):
+    request = models.ForeignKey("EmergencyRequest", on_delete=models.CASCADE)
+    message = models.CharField(max_length=255)
+    type = models.CharField(max_length=20, choices=[("sms","SMS"),("email","Email"),("push","Push")])
+    sent_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.type} - {self.message}"
+

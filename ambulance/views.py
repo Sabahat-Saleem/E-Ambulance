@@ -4,11 +4,15 @@ from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Ambulance, Driver, Dispatch, EmergencyRequest, User
-from .forms import AmbulanceForm, DriverForm, DispatchForm, EmergencyRequestForm, RegistrationForm, LoginForm,  User
+from .forms import AmbulanceForm, DriverForm, DispatchForm, EmergencyRequestForm, RegistrationForm, LoginForm
+from .models import User, EmergencyRequest, Driver, Ambulance, Dispatch, ChatMessage
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Prefetch
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+import json
 # List all ambulances
 def ambulance_list(request):
     ambulances = Ambulance.objects.all()
@@ -269,9 +273,70 @@ def user_login(request):
 # views.py
 def ambulance_list_user(request):
     ambulances = Ambulance.objects.all()   # sirf show karna, add/edit nahi
-    return render(request, "ambulance_list_user.html", {"ambulances": ambulances})
+    return render(request, "ambulance_list.html", {"ambulances": ambulances})
 
 # views.py
 def drivers_list_user(request):
     drivers = Driver.objects.all()  # sirf show karna
     return render(request, "drivers_list_user.html", {"drivers": drivers})
+
+def remove_expired_requests():
+    now = timezone.now()
+    EmergencyRequest.objects.filter(
+        expiry_time__lt=now, 
+        status__in=['pending','accepted']
+    ).update(status='expired')
+
+def release_ambulances():
+    for dispatch in Dispatch.objects.filter(status="assigned"):
+        if dispatch.is_free():
+            dispatch.status = "completed"
+            dispatch.ambulance.current_status = "available"
+            dispatch.ambulance.save()
+            dispatch.save()
+
+def communication_dashboard(request):
+    requests = EmergencyRequest.objects.all()
+    return render(request, "communication_dashboard.html", {"requests": requests})
+
+
+def chat_view(request, request_id):
+    # Get the emergency request object
+    req = get_object_or_404(EmergencyRequest, id=request_id)
+    
+    # Get all chat messages for this request
+    messages = ChatMessage.objects.filter(request=req).order_by("timestamp")
+    
+    if request.method == "POST":
+        message_text = request.POST.get("message")
+        if message_text:
+            # Create a new chat message
+            ChatMessage.objects.create(
+                request=req,
+                sender=request.user,
+                message=message_text
+            )
+            # After sending, redirect to the same chat page (prevents double submission)
+            return redirect('chat_view', request_id=request_id)
+    
+    # Render the chat page
+    return render(request, 'chat_view.html', {
+        'req': req,
+        'messages': messages
+    })
+
+def get_messages(request, request_id):
+    req = get_object_or_404(EmergencyRequest, id=request_id)
+    messages = ChatMessage.objects.filter(request=req).order_by("timestamp")
+    data = [{"sender": m.sender.firstname, "message": m.message, "time": m.timestamp.strftime("%H:%M")} for m in messages]
+    return JsonResponse(data, safe=False)
+
+@csrf_exempt
+def send_message(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        req = EmergencyRequest.objects.get(id=data["request_id"])
+        user = User.objects.get(id=data["sender_id"])
+        msg = ChatMessage.objects.create(request=req, sender=user, message=data["message"])
+        return JsonResponse({"status": "ok", "message": msg.message})
+    return JsonResponse({"status": "error"}, status=400)

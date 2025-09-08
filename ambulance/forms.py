@@ -24,7 +24,7 @@ class DispatchForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["request"].queryset = EmergencyRequest.objects.filter(status="Pending")
+        self.fields['request'].queryset = EmergencyRequest.objects.filter(status="pending")
         self.fields["ambulance"].queryset = Ambulance.objects.filter(current_status="available")
         self.fields["driver"].queryset = Driver.objects.all()
 
