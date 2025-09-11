@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "home.html" %}
 
 {% block content %}
 <div class="container mt-4">
@@ -20,7 +20,7 @@
           <td>{{ req.status }}</td>
           <td>
             <a href="{% url 'chat_view' req.id %}" class="btn btn-sm btn-outline-primary">
-              💬 Open Chat
+              Request #{{ req.id }} - {{ req.status }}💬 Open Chat
             </a>
           </td>
         </tr>

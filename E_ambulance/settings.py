@@ -37,8 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "channels",
     'ambulance',
+    'widget_tweaks',
 ]
+ASGI_APPLICATION = "E_ambulance.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -128,3 +137,11 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "admin@gmail.com"
 EMAIL_HOST_PASSWORD = "admin1234"  # Use App Password if using Gmail
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/home/'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

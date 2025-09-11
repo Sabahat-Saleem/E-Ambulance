@@ -43,8 +43,6 @@ urlpatterns = [
     path("ambulance-list/", views.ambulance_list_user, name="ambulance_list"),
     path("drivers-list/", views.drivers_list_user, name="drivers_list"),
     path("communication/", views.communication_dashboard, name="communication_dashboard"),
-    path("communication/chat/<int:request_id>/", views.chat_view, name="chat_view"),
-    path("communication/messages/<int:request_id>/", views.get_messages, name="get_messages"),
-    path("communication/send/", views.send_message, name="send_message"),    
+     path('chat/<int:request_id>/', views.chat_view, name='chat_view'),
+    path("chat-messages/", views.chat_messages_list, name="chat_messages"),
 ]
-  

@@ -1,5 +1,5 @@
 # Create your views here.
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
@@ -12,6 +12,7 @@ from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login
 import json
 # List all ambulances
 def ambulance_list(request):
@@ -191,6 +192,7 @@ def register(request):
 
     return render(request, "register.html", {"form": form})
 
+
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -300,43 +302,21 @@ def communication_dashboard(request):
     return render(request, "communication_dashboard.html", {"requests": requests})
 
 
+def chat_messages_list(request):
+    messages = ChatMessage.objects.all().order_by("-timestamp")[:50]
+    return render(request, "chat_messages.html", {"messages": messages})
+
 def chat_view(request, request_id):
-    # Get the emergency request object
-    req = get_object_or_404(EmergencyRequest, id=request_id)
-    
-    # Get all chat messages for this request
-    messages = ChatMessage.objects.filter(request=req).order_by("timestamp")
-    
-    if request.method == "POST":
-        message_text = request.POST.get("message")
-        if message_text:
-            # Create a new chat message
-            ChatMessage.objects.create(
-                request=req,
-                sender=request.user,
-                message=message_text
-            )
-            # After sending, redirect to the same chat page (prevents double submission)
-            return redirect('chat_view', request_id=request_id)
-    
-    # Render the chat page
-    return render(request, 'chat_view.html', {
+    try:
+        req = get_object_or_404(EmergencyRequest, id=request_id)
+    except EmergencyRequest.DoesNotExist:
+        return HttpResponse("Request not found")
+
+    messages = ChatMessage.objects.filter(request=req).order_by('timestamp')
+    user = User.objects.get(pk=request.session["user_id"])
+
+    return render(request, 'chat.html', {
         'req': req,
-        'messages': messages
+        'messages': messages,
+        'user': user
     })
-
-def get_messages(request, request_id):
-    req = get_object_or_404(EmergencyRequest, id=request_id)
-    messages = ChatMessage.objects.filter(request=req).order_by("timestamp")
-    data = [{"sender": m.sender.firstname, "message": m.message, "time": m.timestamp.strftime("%H:%M")} for m in messages]
-    return JsonResponse(data, safe=False)
-
-@csrf_exempt
-def send_message(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        req = EmergencyRequest.objects.get(id=data["request_id"])
-        user = User.objects.get(id=data["sender_id"])
-        msg = ChatMessage.objects.create(request=req, sender=user, message=data["message"])
-        return JsonResponse({"status": "ok", "message": msg.message})
-    return JsonResponse({"status": "error"}, status=400)

@@ -1,16 +1,21 @@
-"""
-ASGI config for E_ambulance project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
-"""
-
 import os
-
+import django
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'E_ambulance.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "E_ambulance.settings")
 
-application = get_asgi_application()
+# 👇 Important: Django ko initialize karo models import se pehle
+django.setup()
+
+import ambulance.routing   # ab safe hai
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            ambulance.routing.websocket_urlpatterns
+        )
+    ),
+})

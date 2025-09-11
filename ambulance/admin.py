@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Ambulance, EmergencyRequest
+from .models import Ambulance, EmergencyRequest, ChatMessage, NotificationLog
 
 @admin.register(Ambulance)
 class AmbulanceAdmin(admin.ModelAdmin):
@@ -28,3 +28,13 @@ class EmergencyRequestAdmin(admin.ModelAdmin):
     def mark_as_rejected(self, request, queryset):
         queryset.update(status="Rejected")
     mark_as_rejected.short_description = "Mark selected requests as Rejected"
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ("id", "request", "sender", "message", "timestamp")
+    search_fields = ("message", "sender__firstname")
+
+@admin.register(NotificationLog)
+class NotificationLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "request", "type", "message", "sent_at")
+    list_filter = ("type",)

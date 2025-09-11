@@ -314,7 +314,10 @@ html, body {
           <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
           <!-- Dashboard -->
-         <li> <a class="nav-link" href="{% url 'chat_view' requests.0.id %}">Dashboard</a></li>
+         <a class="nav-link" href="{% url 'communication_dashboard' %}">Dashboard</a>
+
+</li>
+
         </ul>
       </div>
     </div>

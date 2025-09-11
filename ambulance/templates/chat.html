@@ -1,0 +1,144 @@
+{% extends "home.html" %}
+
+{% block content %}
+<style>
+.chat-container {
+  max-width: 700px;
+  margin: 30px auto;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
+.chat-header {
+  padding: 15px;
+  background: linear-gradient(90deg, #ff6f61, #e74c3c);
+  color: white;
+  border-radius: 15px 15px 0 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+.messages-box {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background: #f9f9f9;
+}
+.messages-box p {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  max-width: 70%;
+  font-size: 15px;
+}
+.messages-box .me {
+  background: #e67e22;
+  color: white;
+  margin-left: auto;
+  text-align: right;
+}
+.messages-box .other {
+  background: #ecf0f1;
+  color: #333;
+  margin-right: auto;
+}
+.messages-box .time {
+  font-size: 11px;
+  color: #777;
+  margin-left: 5px;
+}
+.chat-input {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid #ddd;
+  background: #fff;
+  border-radius: 0 0 15px 15px;
+}
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+.chat-input button {
+  background: #e67e22;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.chat-input button:hover {
+  background: #d35400;
+}
+</style>
+
+<div class="chat-container">
+  <div class="chat-header">
+    Chat for Request: {{ req.hospital_name }}
+  </div>
+
+  <div id="chat-messages" class="messages-box"></div>
+
+  <div class="chat-input">
+    <input type="text" id="chat-message" placeholder="Type a message...">
+    <button type="button" id="chat-message-send">Send</button>
+  </div>
+</div>
+
+
+<script>
+const requestId = "{{ req.id }}";
+const senderId = "{{ user.id }}";
+
+const chatSocket = new WebSocket(
+  "ws://" + window.location.host + "/ws/chat/" + requestId + "/"
+);
+
+chatSocket.onmessage = function(e) {
+  const data = JSON.parse(e.data);
+  console.log("Received:", data); // <-- Add this line
+  if (data.type === "history") {
+    data.messages.forEach(m => appendMessage(m));
+  }
+  if (data.type === "chat") {
+    appendMessage(data.message);
+  }
+};
+
+function appendMessage(m) {
+    console.log("Appending:", m); // <-- Add this line
+  const chatBox = document.getElementById("chat-messages");
+  const isMe = m.sender_id == senderId;
+  const msgDiv = document.createElement("p");
+  msgDiv.className = isMe ? "me" : "other";
+  if (isMe) {
+    msgDiv.innerHTML = `${m.message} <span class="time">${m.timestamp}</span>`;
+  } else {
+    msgDiv.innerHTML = `<strong>${m.sender}:</strong> ${m.message} <span class="time">${m.timestamp}</span>`;
+  }
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+const input = document.getElementById("chat-message");
+const sendBtn = document.getElementById("chat-message-send");
+sendBtn.onclick = sendMessage;
+
+input.onkeypress = function(event) {
+  if (event.key === "Enter") sendMessage();
+};
+
+function sendMessage() {
+  const message = input.value;
+  if (message.trim() !== "") {
+    chatSocket.send(JSON.stringify({ message: message }));
+    input.value = "";
+  }
+}
+</script>
+{% endblock %}
