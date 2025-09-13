@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 import json
+from django.contrib.auth.hashers import check_password
 # List all ambulances
 def ambulance_list(request):
     ambulances = Ambulance.objects.all()
@@ -193,6 +194,27 @@ def register(request):
     return render(request, "register.html", {"form": form})
 
 
+# def login_view(request):
+#     if request.method == "POST":
+#         form = LoginForm(request.POST)
+#         if form.is_valid():
+#             email = form.cleaned_data["email"]
+#             password = form.cleaned_data["password"]
+
+#             try:
+#                 user = User.objects.get(email=email)
+#                 if check_password(password, user.password):  #   Check hashed password
+#                     request.session["user_id"] = user.userid
+#                     messages.success(request, "Login successful!")
+#                     return redirect("home")   # Redirect to a dashboard or home page
+#                 else:
+#                     messages.error(request, "Invalid password.")
+#             except User.DoesNotExist:
+#                 messages.error(request, "User does not exist.")
+#     else:
+#         form = LoginForm()
+#     return render(request, "login.html", {"form": form})
+
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -202,22 +224,28 @@ def login_view(request):
 
             try:
                 user = User.objects.get(email=email)
-                if check_password(password, user.password):  #   Check hashed password
+                if check_password(password, user.password):
+                    # Save session
                     request.session["user_id"] = user.userid
                     messages.success(request, "Login successful!")
-                    return redirect("home")   # Redirect to a dashboard or home page
+
+                    # Redirect based on admin or normal user
+                    if user.is_admin:
+                        return redirect("ambulance_list")  # Admin dashboard
+                    else:
+                        return redirect("home")
+
                 else:
                     messages.error(request, "Invalid password.")
             except User.DoesNotExist:
                 messages.error(request, "User does not exist.")
     else:
         form = LoginForm()
-    return render(request, "login.html", {"form": form})
 
+    return render(request, "login.html", {"form": form})
 
 def logout_view(request):
     request.session.flush()
-    messages.success(request, "You have been logged out.")
     return redirect("login")
 #*************************************** Static Page Views ***************************************#
 # Static Pages
@@ -320,3 +348,40 @@ def chat_view(request, request_id):
         'messages': messages,
         'user': user
     })
+
+def admin_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return redirect("login")
+        user = User.objects.get(id=user_id)
+        if not user.is_admin:
+            return redirect("home")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+def login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get("user_id"):
+            return redirect("login")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+# ---- Views ----
+
+@admin_required
+def admin_dashboard(request):
+    return render(request, "admin_dashboard.html")
+
+@login_required
+@admin_required
+def create_admin_user(request):
+    if request.method == "POST":
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            form.save(make_admin=True)
+            messages.success(request, "Admin created successfully!")
+            return redirect("admin_dashboard")
+    else:
+        form = RegistrationForm()
+    return render(request, "create_admin.html", {"form": form})

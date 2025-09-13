@@ -2,6 +2,7 @@ from .models import Ambulance
 from django import forms
 from .models import Driver, Dispatch, EmergencyRequest, User
 
+
 class AmbulanceForm(forms.ModelForm):
     class Meta:
         model = Ambulance
@@ -56,7 +57,14 @@ class RegistrationForm(forms.ModelForm):
             "date_of_birth": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
             "address": forms.TextInput(attrs={"class": "form-control"}),
         }
-
+        def save(self, commit=True, make_admin=False):
+            user = super().save(commit=False)
+            user.set_password(self.cleaned_data['password'])
+            if make_admin:
+                user.is_admin = True
+            if commit:
+                user.save()
+            return user
 
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={

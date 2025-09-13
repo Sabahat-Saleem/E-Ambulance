@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.hashers import make_password
 from datetime import timedelta
 from django.utils import timezone
-
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 class Ambulance(models.Model):
     AMBULANCE_STATUS = [
         ("available", "Available"),
@@ -43,6 +44,7 @@ class User(models.Model):
     password = models.CharField(max_length=128)
     date_of_birth = models.DateField(null=True, blank=True)
     address = models.TextField(default="", blank=True)
+    is_admin = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         # Hash password before saving
@@ -127,3 +129,21 @@ class NotificationLog(models.Model):
     def __str__(self):
         return f"{self.type} - {self.message}"
 
+class MyUserManager(BaseUserManager):
+    def create_user(self, email, password=None, is_admin=False):
+        if not email:
+            raise ValueError("Email required")
+        user = self.model(email=self.normalize_email(email), is_admin=is_admin)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None):
+        return self.create_user(email, password, is_admin=True)
+
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    address = models.CharField(max_length=255, blank=True)
+    phonenumber = models.CharField(max_length=20, blank=True)
+    date_of_birth = models.DateField(blank=True, null=True)
