@@ -326,8 +326,16 @@ def release_ambulances():
             dispatch.save()
 
 def communication_dashboard(request):
+    # Open to all logged-in users to view communication requests
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+    try:
+        current_user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect("login")
     requests = EmergencyRequest.objects.all()
-    return render(request, "communication_dashboard.html", {"requests": requests})
+    return render(request, "communication_dashboard.html", {"requests": requests, "user": current_user})
 
 
 def chat_messages_list(request):
@@ -349,16 +357,59 @@ def chat_view(request, request_id):
         'user': user
     })
 
-def admin_required(view_func):
-    def wrapper(request, *args, **kwargs):
-        user_id = request.session.get("user_id")
-        if not user_id:
-            return redirect("login")
-        user = User.objects.get(id=user_id)
-        if not user.is_admin:
-            return redirect("home")
-        return view_func(request, *args, **kwargs)
-    return wrapper
+# ---- Separate Chat Interfaces ----
+def user_chat_view(request, request_id):
+    """WhatsApp-style chat for normal users, accessed from home page."""
+    req = get_object_or_404(EmergencyRequest, id=request_id)
+    messages = ChatMessage.objects.filter(request=req).order_by('timestamp')
+    user = User.objects.get(pk=request.session.get("user_id"))
+    return render(request, 'chat_user.html', {
+        'req': req,
+        'messages': messages,
+        'user': user
+    })
+
+def user_chat_list(request):
+    """List all of the current user's EmergencyRequests with chat links."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+    try:
+        current_user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect("login")
+
+    requests_qs = EmergencyRequest.objects.filter(user=current_user).order_by("-created_at")
+    return render(request, "chat_list.html", {
+        "user": current_user,
+        "requests": requests_qs,
+    })
+
+def chat_entry(request):
+    """Navbar Chat entry point: admins -> communication dashboard, users -> their chat list."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+    try:
+        current_user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect("login")
+    if getattr(current_user, "is_admin", False):
+        return redirect("communication_dashboard")
+    return redirect("chat_list")
+
+# Removed admin_required; not needed in this simplified flow
+
+def admin_chat_view(request, request_id):
+    """Admin-focused chat interface, accessed from admin communication dashboard."""
+    req = get_object_or_404(EmergencyRequest, id=request_id)
+    messages = ChatMessage.objects.filter(request=req).order_by('timestamp')
+    user = User.objects.get(pk=request.session.get("user_id"))
+    return render(request, 'chat_admin.html', {
+        'req': req,
+        'messages': messages,
+        'user': user
+    })
 
 def login_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -369,12 +420,10 @@ def login_required(view_func):
 
 # ---- Views ----
 
-@admin_required
 def admin_dashboard(request):
     return render(request, "admin_dashboard.html")
 
 @login_required
-@admin_required
 def create_admin_user(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)

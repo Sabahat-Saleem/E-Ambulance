@@ -101,7 +101,8 @@ const chatSocket = new WebSocket(
 
 chatSocket.onmessage = function(e) {
   const data = JSON.parse(e.data);
-  console.log("Received:", data); // <-- Add this line
+  console.log("📩 Received:", data);
+
   if (data.type === "history") {
     data.messages.forEach(m => appendMessage(m));
   }
@@ -111,22 +112,29 @@ chatSocket.onmessage = function(e) {
 };
 
 function appendMessage(m) {
-    console.log("Appending:", m); // <-- Add this line
+  console.log("📝 Appending:", m);
+
   const chatBox = document.getElementById("chat-messages");
+  if (!chatBox) {
+    console.error("❌ chat-messages div not found!");
+    return;
+  }
+
   const isMe = m.sender_id == senderId;
   const msgDiv = document.createElement("p");
   msgDiv.className = isMe ? "me" : "other";
-  if (isMe) {
-    msgDiv.innerHTML = `${m.message} <span class="time">${m.timestamp}</span>`;
-  } else {
-    msgDiv.innerHTML = `<strong>${m.sender}:</strong> ${m.message} <span class="time">${m.timestamp}</span>`;
-  }
+
+  msgDiv.innerHTML = isMe
+    ? `${m.message} <span class="time">${m.timestamp || ""}</span>`
+    : `<strong>${m.sender}:</strong> ${m.message} <span class="time">${m.timestamp || ""}</span>`;
+
   chatBox.appendChild(msgDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 const input = document.getElementById("chat-message");
 const sendBtn = document.getElementById("chat-message-send");
+
 sendBtn.onclick = sendMessage;
 
 input.onkeypress = function(event) {

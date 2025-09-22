@@ -43,6 +43,14 @@ urlpatterns = [
     path("ambulance-list/", views.ambulance_list_user, name="ambulance_list"),
     path("drivers-list/", views.drivers_list_user, name="drivers_list"),
     path("communication/", views.communication_dashboard, name="communication_dashboard"),
-     path('chat/<int:request_id>/', views.chat_view, name='chat_view'),
+    # Chat entry point: decides admin/user destination
+    path("chat/", views.chat_entry, name="chat_entry"),
+    # User chat list
+    path("chats/", views.user_chat_list, name="chat_list"),
+    path('chat/<int:request_id>/', views.chat_view, name='chat_view'),  # legacy
+    # New separated chat routes
+    path('chat/user/<int:request_id>/', views.user_chat_view, name='user_chat'),
+    # Avoid conflict with Django admin site ('admin/'). Use 'ops/' prefix for operator/admin chat.
+    path('ops/chat/<int:request_id>/', views.admin_chat_view, name='admin_chat'),
     path("chat-messages/", views.chat_messages_list, name="chat_messages"),
 ]

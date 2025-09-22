@@ -1,15 +1,15 @@
 import os
-import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'E_ambulance.settings')  # 👈 must be before Django imports
+
+from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "E_ambulance.settings")
+import ambulance.routing
+   # your app’s routing.py
 
-# 👇 Important: Django ko initialize karo models import se pehle
-django.setup()
-
-import ambulance.routing   # ab safe hai
+# ✅ Set Django settings before calling get_asgi_application
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'E_ambulance.settings')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

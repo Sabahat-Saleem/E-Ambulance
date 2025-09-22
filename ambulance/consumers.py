@@ -1,20 +1,37 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import ChatMessage, EmergencyRequest, User
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope["url_route"]["kwargs"]["request_id"]
-        self.room_group_name = f"chat_{self.room_name}"
+        self.request_id = self.scope['url_route']['kwargs']['request_id']
+        self.room_group_name = f'chat_{self.request_id}'
 
+        # Join group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
+        # Resolve session user from custom User model
+        self.user = await self.get_session_user()
+
         await self.accept()
 
-        history = await self.get_message_history(self.room_name)
+        # ✅ Get chat history using async wrapper
+        messages = await self.get_messages()
+        history = []
+        for m in messages:
+            is_admin = bool(getattr(m.sender, 'is_admin', False))
+            sender_name = "Admin" if is_admin else f"{getattr(m.sender, 'firstname', '')} {getattr(m.sender, 'lastname', '')}".strip()
+            history.append({
+                "message": m.message,
+                "sender": sender_name or "User",
+                "sender_id": getattr(m.sender, 'id', None) or getattr(m.sender, 'userid', None),
+                "is_admin": is_admin,
+                "timestamp": m.timestamp.strftime("%H:%M"),
+            })
+
+        # Send history to client
         await self.send(text_data=json.dumps({
             "type": "history",
             "messages": history
@@ -29,52 +46,74 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data["message"]
+        sender = self.user  # custom session-based user
 
-        user = self.scope["user"]
-        if not user.is_authenticated:
-            return  # Optionally, send an error message
+        # ✅ Save message async (only if we have a valid user)
+        msg = await self.save_message(sender, message)
 
-        msg = await self.save_message(self.room_name, user.id, message)
-
-        # Broadcast the message to the group
+        # Broadcast to group
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "chat_message",
-                "message": msg
+                "message": {
+                    "message": msg.message,
+                    "sender": ("Admin" if bool(getattr(sender, 'is_admin', False)) else (f"{getattr(sender, 'firstname', '')} {getattr(sender, 'lastname', '')}".strip() or "User")),
+                    "sender_id": getattr(sender, 'id', None) or getattr(sender, 'userid', None),
+                    "is_admin": bool(getattr(sender, 'is_admin', False)),
+                    "timestamp": msg.timestamp.strftime("%H:%M"),
+                }
             }
         )
 
     async def chat_message(self, event):
-        # Send message to WebSocket
         await self.send(text_data=json.dumps({
             "type": "chat",
-            "message": event["message"]
+            "message": event["message"],
         }))
 
+    # -----------------
+    # ORM Helpers
+    # -----------------
     @database_sync_to_async
-    def get_message_history(self, room_name):
-        msgs = ChatMessage.objects.filter(request_id=room_name).order_by("timestamp")
-        return [
-            {
-                "id": m.id,
-                "message": m.message,
-                "sender": m.user.firstname if hasattr(m.user, "firstname") else str(m.user),
-                "sender_id": m.user.id,
-                "timestamp": m.timestamp.strftime("%Y-%m-%d %H:%M"),
-            }
-            for m in msgs
-        ]
+    def get_messages(self):
+        from .models import ChatMessage
+        # Return a concrete list to avoid lazy evaluation in async context
+        return list(
+            ChatMessage.objects
+            .filter(request_id=self.request_id)
+            .select_related("sender")
+            .order_by("timestamp")[:50]
+        )
 
     @database_sync_to_async
-    def save_message(self, room_name, sender_id, message):
-        user = User.objects.get(id=sender_id)
-        req = EmergencyRequest.objects.get(id=room_name)
-        msg = ChatMessage.objects.create(request=req, user=user, message=message)
-        return {
-            "id": msg.id,
-            "message": msg.message,
-            "sender": user.firstname if hasattr(user, "firstname") else str(user),
-            "sender_id": user.id,
-            "timestamp": msg.timestamp.strftime("%Y-%m-%d %H:%M"),
-        }
+    def save_message(self, sender, message):
+        from .models import ChatMessage
+        # Guard: if no valid sender from session, we can either reject or save with null
+        if sender is None:
+            # Optionally, you could raise an exception or skip saving
+            return ChatMessage.objects.create(
+                request_id=self.request_id,
+                sender=None,  # will error if FK not nullable; in that case, require login
+                message=message
+            )
+        return ChatMessage.objects.create(
+            request_id=self.request_id,
+            sender=sender,
+            message=message
+        )
+
+    @database_sync_to_async
+    def get_session_user(self):
+        """Fetch the custom User instance using session 'user_id'."""
+        try:
+            from .models import User
+            session = self.scope.get("session")
+            if not session:
+                return None
+            user_id = session.get("user_id")
+            if not user_id:
+                return None
+            return User.objects.get(pk=user_id)
+        except Exception:
+            return None

@@ -1,0 +1,68 @@
+{% extends "home.html" %}
+
+{% block content %}
+<style>
+/* Admin-focused chat layout */
+.chat-wrap {max-width: 1000px; margin: 20px auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); overflow: hidden;}
+.chat-header {background: #0d6efd; color:#fff; padding: 12px 16px; font-weight: 700; display:flex; justify-content:space-between; align-items:center}
+.chat-body {height: 60vh; overflow-y: auto; padding: 16px; background: #f8f9fa}
+.msg {display: inline-block; padding: 8px 12px; border-radius: 12px; margin: 6px 0; max-width: 70%; position: relative; font-size: 14px}
+.msg.me {background: #bee3ff; margin-left: auto; display:block; text-align: left}
+.msg.other {background: #e9ecef; display:block; margin-right: auto; text-align: left}
+.msg .meta {font-size: 11px; color: #6c757d; margin-left: 8px}
+.chat-input {display:flex; gap: 8px; padding: 10px; background: #f7f7f7; border-top: 1px solid #ddd}
+.chat-input input {flex:1; border: 1px solid #ccc; border-radius: 8px; padding: 10px 14px}
+.chat-input button {background: #0d6efd; color:#fff; border:none; border-radius: 8px; padding: 10px 16px; font-weight:600}
+</style>
+
+<div class="chat-wrap">
+  <div class="chat-header">
+    <div>Admin Chat • Request #{{ req.id }} • {{ req.hospital_name }} ({{ req.status }})</div>
+    <a href="{% url 'communication_dashboard' %}" class="btn btn-light btn-sm">Back to Dashboard</a>
+  </div>
+  <div id="chat-messages" class="chat-body"></div>
+  <div class="chat-input">
+    <input type="text" id="chat-message" placeholder="Type a message to the user">
+    <button id="chat-message-send" type="button">Send</button>
+  </div>
+</div>
+
+<script>
+const requestId = "{{ req.id }}";
+const senderId = "{{ user.userid }}";
+const socketUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + "/ws/chat/" + requestId + "/";
+const chatSocket = new WebSocket(socketUrl);
+
+chatSocket.onopen = () => console.log("WS open", socketUrl);
+chatSocket.onerror = (e) => console.error("WS error", e);
+chatSocket.onclose = () => console.warn("WS closed");
+
+chatSocket.onmessage = function(e) {
+  const data = JSON.parse(e.data);
+  if (data.type === "history") data.messages.forEach(m => appendMessage(m));
+  if (data.type === "chat") appendMessage(data.message);
+};
+
+function appendMessage(m){
+  const box = document.getElementById('chat-messages');
+  const isMe = String(m.sender_id) === String(senderId);
+  const p = document.createElement('div');
+  p.className = 'msg ' + (isMe ? 'me' : 'other');
+  p.innerHTML = (isMe
+      ? `${m.message} <span class=\"meta\">${m.timestamp||''}</span>`
+      : `<strong>${m.sender}:</strong> ${m.message} <span class=\"meta\">${m.timestamp||''}</span>`);
+  box.appendChild(p);
+  box.scrollTop = box.scrollHeight;
+}
+
+const input = document.getElementById('chat-message');
+const btn = document.getElementById('chat-message-send');
+
+function send(){
+  const message = input.value;
+  if(message.trim()){ chatSocket.send(JSON.stringify({message})); input.value=''; }
+}
+btn.onclick = send;
+input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') send(); });
+</script>
+{% endblock %}

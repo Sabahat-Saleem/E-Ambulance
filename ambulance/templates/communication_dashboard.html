@@ -19,8 +19,8 @@
           <td>{{ req.hospital_name }}</td>
           <td>{{ req.status }}</td>
           <td>
-            <a href="{% url 'chat_view' req.id %}" class="btn btn-sm btn-outline-primary">
-              Request #{{ req.id }} - {{ req.status }}💬 Open Chat
+            <a href="{% url 'admin_chat' req.id %}" class="btn btn-sm btn-outline-primary">
+              Admin Chat • Request #{{ req.id }}
             </a>
           </td>
         </tr>
