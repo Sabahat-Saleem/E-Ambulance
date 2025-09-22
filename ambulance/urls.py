@@ -3,6 +3,8 @@ from . import views
 
     
 urlpatterns = [
+    # Default landing page -> Registration
+    path("", views.register, name="root_register"),
     
     # Home page urls************************#
     path("home", views.home, name="home"),

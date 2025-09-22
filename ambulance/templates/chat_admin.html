@@ -29,7 +29,6 @@
 
 <script>
 const requestId = "{{ req.id }}";
-const senderId = "{{ user.userid }}";
 const socketUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + "/ws/chat/" + requestId + "/";
 const chatSocket = new WebSocket(socketUrl);
 
@@ -45,7 +44,8 @@ chatSocket.onmessage = function(e) {
 
 function appendMessage(m){
   const box = document.getElementById('chat-messages');
-  const isMe = String(m.sender_id) === String(senderId);
+  // In ADMIN view: admin messages on right, user messages on left
+  const isMe = !!m.is_admin; 
   const p = document.createElement('div');
   p.className = 'msg ' + (isMe ? 'me' : 'other');
   p.innerHTML = (isMe
