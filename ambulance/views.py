@@ -193,27 +193,7 @@ def register(request):
 
     return render(request, "register.html", {"form": form})
 
-
-# def login_view(request):
-#     if request.method == "POST":
-#         form = LoginForm(request.POST)
-#         if form.is_valid():
-#             email = form.cleaned_data["email"]
-#             password = form.cleaned_data["password"]
-
-#             try:
-#                 user = User.objects.get(email=email)
-#                 if check_password(password, user.password):  #   Check hashed password
-#                     request.session["user_id"] = user.userid
-#                     messages.success(request, "Login successful!")
-#                     return redirect("home")   # Redirect to a dashboard or home page
-#                 else:
-#                     messages.error(request, "Invalid password.")
-#             except User.DoesNotExist:
-#                 messages.error(request, "User does not exist.")
-#     else:
-#         form = LoginForm()
-#     return render(request, "login.html", {"form": form})
+ 
 
 def login_view(request):
     if request.method == "POST":
