@@ -19,7 +19,6 @@ from django.contrib.auth.hashers import check_password
 def ambulance_list(request):
     ambulances = Ambulance.objects.all()
     return render(request, "ambulance_list.html", {"ambulances": ambulances})
-
 # Create new ambulance
 def ambulance_create(request):
     if request.method == "POST":
@@ -100,7 +99,7 @@ def dispatch_create(request):
         if form.is_valid():
             dispatch = form.save(commit=False)
 
-            # ✅ Update request + ambulance status
+            # Update request + ambulance status
             dispatch.request.status = "Dispatched"
             dispatch.request.save()
 
